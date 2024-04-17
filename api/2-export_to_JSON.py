@@ -1,38 +1,34 @@
 #!/usr/bin/python3
-"""
-project api task 2
-"""
+"""cré fichier json avec données d'une api dont l'id est passé en argument"""
 import json
 import requests
-import sys
-
-
-def get_employee(user_id):
-    """
-    export data in the JSON format.
-    """
-    user_id = sys.argv[1]
-    user = "https://jsonplaceholder.typicode.com/users/{}".format(user_id)
-    todos = "https://jsonplaceholder.typicode.com/todos/?userId={}".format(
-        user_id)
-    name = requests.get(user).json().get("name")
-    request_todo = requests.get(todos).json()
-
-    todo_list = []
-
-    for task in request_todo:
-        todo_list.append({
-            "task": task.get("title"),
-            "completed": task.get("completed"),
-            "username": name
-        })
-
-    result = {name: todo_list}
-
-    with open(f"{user_id}.json", "w") as file:
-        json.dump(result, file)
+from sys import argv
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        get_employee(sys.argv[1])
+    id = argv[1]
+    url_api = 'https://jsonplaceholder.typicode.com'
+    json_user = requests.get(url_api + "/users/" + id)
+    json_todo = requests.get(url_api + "/todos?userId=" + id)
+
+    if json_todo.status_code != 200 or json_user.status_code != 200:
+        exit(1)
+
+    data_user = json_user.json()
+    data_api_todos = json_todo.json()
+
+    liste_todos = []
+    for todo in data_api_todos:
+        dict_todos = {}
+
+        dict_todos["task"] = todo["title"]
+        dict_todos["completed"] = todo["completed"]
+        dict_todos["username"] = json_user.json()['username']
+
+        liste_todos.append(dict_todos)
+
+    dict_data_todo = {}
+    dict_data_todo[id] = liste_todos
+
+    with open(id + ".json", "w") as file:
+        json.dump(dict_data_todo, file)

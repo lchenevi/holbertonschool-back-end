@@ -1,33 +1,24 @@
 #!/usr/bin/python3
-"""
-project api task 1
-"""
-import csv
+"""cré fichier csv avec données d'une api dont l'id est passé en argument"""
 import requests
-import sys
-
-
-def get_employee(user_id):
-    """
-    Obtains and displays information about an employee's tasks.
-    """
-    user_id = sys.argv[1]
-    user = "https://jsonplaceholder.typicode.com/users/{}".format(user_id)
-    todos = "https://jsonplaceholder.typicode.com/todos/?userId={}".format(
-        user_id)
-    name = requests.get(user).json().get("name")
-    request_todo = requests.get(todos).json()
-
-    filename = "{}.csv".format(user_id)
-    with open(filename, "w", newline="") as file:
-        writer = csv.writer(file)
-        csv_format = [["USER_ID", "USERNAME", "TASK_COMPLETED_STATUS",
-                       "TASK_TITLE"]]
-    for task in request_todo:
-        csv_format.append([user_id, name, task.get("completed"),
-                           task.get("title")])
+from sys import argv
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        get_employee(sys.argv[1])
+    id = argv[1]
+    url_api = 'https://jsonplaceholder.typicode.com'
+    json_user = requests.get(url_api + "/users/" + id)
+    json_todo = requests.get(url_api + "/todos?userId=" + id)
+
+    data_user = json_user.json()
+    data_todos = json_todo.json()
+
+    texte = ""
+    for todo in data_todos:
+        texte = texte + '"' + id + '"'
+        texte = texte + ',"' + data_user.get("username") + '"'
+        texte = texte + ',"' + str(todo.get("completed")) + '"'
+        texte = texte + ',"' + todo.get("title") + '"\n'
+
+    with open(id + ".csv", "w") as file:
+        file.write(texte)
