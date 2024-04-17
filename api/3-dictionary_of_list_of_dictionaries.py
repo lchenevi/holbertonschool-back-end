@@ -1,30 +1,39 @@
 #!/usr/bin/python3
-""" Python script to export data in the JSON format """
-
+"""
+project api task 3
+"""
 import json
 import requests
-import sys
 
-API_URL = "https://jsonplaceholder.typicode.com/"
+
+def get_employee():
+    """
+    export data in the JSON format.
+    """
+    users = requests.get("https://jsonplaceholder.typicode.com/users/").json()
+
+    data_dict = {}
+
+    for user in users:
+        user_id = user.get("id")
+        name = user.get("username")
+        todos = "https://jsonplaceholder.typicode.com/todos?userId={}".format(
+            user_id)
+        request_todo = requests.get(todos).json()
+
+        todo_list = []
+        for task in request_todo:
+            todo_list.append({
+                "task": task.get("title"),
+                "completed": task.get("completed"),
+                "username": name
+            })
+
+        data_dict[user_id] = todo_list
+
+    with open("todo_all_employees.json", "w") as file:
+        json.dump(data_dict, file)
+
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: ./0-gather_data_from_an_API.py <employee id>")
-        sys.exit(1)
-
-    employee_id = sys.argv[1]
-    employee = requests.get(API_URL + "users/{}".format(employee_id)).json()
-    todos = requests.get(API_URL + "todos",
-                         params={"userId": employee_id}).json()
-    done_tasks = [task for task in todos if task.get("completed") is True]
-
-    all_employees_data = {}
-    for people in employee:
-        user_id = employee["id"]
-        username = employee["username"]
-        tasks = [{"task": task["title"], "completed": task["completed"]}
-                 for task in todos if task["userId"] == user_id]
-        all_employees_data[user_id] = {"username": username, "tasks": tasks}
-
-    with open("todo_all_employees.json", "w") as jsonfile:
-        json.dump(all_employees_data, jsonfile)
+    get_employee()

@@ -1,25 +1,33 @@
 #!/usr/bin/python3
-""" Script that export data in the CSV format """
-
+"""
+project api task 1
+"""
 import csv
 import requests
 import sys
 
-API_URL = "https://jsonplaceholder.typicode.com/"
+
+def get_employee(user_id):
+    """
+    Obtains and displays information about an employee's tasks.
+    """
+    user_id = sys.argv[1]
+    user = "https://jsonplaceholder.typicode.com/users/{}".format(user_id)
+    todos = "https://jsonplaceholder.typicode.com/todos/?userId={}".format(
+        user_id)
+    name = requests.get(user).json().get("name")
+    request_todo = requests.get(todos).json()
+
+    filename = "{}.csv".format(user_id)
+    with open(filename, "w", newline="") as file:
+        writer = csv.writer(file)
+        csv_format = [["USER_ID", "USERNAME", "TASK_COMPLETED_STATUS",
+                       "TASK_TITLE"]]
+    for task in request_todo:
+        csv_format.append([user_id, name, task.get("completed"),
+                           task.get("title")])
+
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: ./0-gather_data_from_an_API.py <employee id>")
-        sys.exit(1)
-
-    employee_id = sys.argv[1]
-    employee = requests.get(API_URL + "users/{}".format(employee_id)).json()
-    todos = requests.get(API_URL + "todos",
-                         params={"userId": employee_id}).json()
-    done_tasks = [task for task in todos if task.get("completed") is True]
-
-    with open("{}.csv".format(employee_id), "w") as csvfile:
-        csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
-        for task in todos:
-            csvwriter.writerow([employee_id, employee.get("username"),
-                                task.get("completed"), task.get("title")])
+    if len(sys.argv) == 2:
+        get_employee(sys.argv[1])
